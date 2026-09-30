@@ -13,6 +13,10 @@
  *
  * 运行：node --test tests/v4-source-kind.test.mjs
  * 反证（打补丁前应红）：GRADED_PLUGIN=<打补丁前的插件目录> node --test tests/v4-source-kind.test.mjs
+ *
+ * 边界：本文件断言的是**生产者侧发出的 source 形态**（离线运行，不引入宿主
+ * `@deepseek-ai/dsh-session-format*` 包），锁的是"注入形态不被改回退休写法"；
+ * 宿主是否接纳该形态由 `packages/session/session-format-v3-to-v4` 的 `source()` 决定。
  */
 import { test, after } from 'node:test'
 import assert from 'node:assert/strict'
@@ -116,7 +120,9 @@ test('mark_task 续轮 steer 用 producer-owned kind', async () => {
   assert.ok(markTask, 'mark_task 未注册')
   const res = await markTask.execute({ level: 'L2', title: 'I1', status: 'completed' }, { agent })
   assert.equal(res?.ok, true)
-  await new Promise((r) => setTimeout(r, 250)) // 插件以 60ms 窗口合并续轮引导
+  // 插件以 60ms 窗口合并续轮引导：轮询到出现为止（高负载 CI 下固定 sleep 会闪红）
+  const deadline = Date.now() + 2000
+  while (steers.length === 0 && Date.now() < deadline) await new Promise((r) => setTimeout(r, 20))
   assert.equal(steers.length, 1, '应发出 1 条续轮 steer')
   assert.equal(steers[0]?.source?.kind, 'plugin:dsh-graded-mode')
 })
