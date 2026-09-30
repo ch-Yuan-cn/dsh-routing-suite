@@ -11,8 +11,10 @@
   与 router-core 的同类问题同源）。不改这处，新 kind 下插件自己注入的审核提示会被 review 文本扫描
   当成用户回复（含「确认」→ 误推进阶段）。
 - 回归测试：`tests/v4-source-kind.test.mjs`（4 例；打补丁前 3 例红）。
-- 兼容性：v4 之前的 released codec 要求 user 消息 `source.kind` 落在闭集内，与 v4「拒绝 `plugin` 字面量」
-  没有交集——不存在同时满足两代的写法，故本改动面向 v4 宿主（DSH 0.1.7+）。
+- 兼容性：**同时兼容 v3 / v4 宿主**。v3 原生的 `assertEvent(event, 3)` 只做结构校验后直接返回
+  （`session-format-v2-to-v3/src/payload.ts`），source-kind 白名单只作用于 **v2 迁移分类**，
+  因此 `plugin:dsh-graded-mode` 在 v3 宿主上同样可写。唯一附加要求在**消费侧**：过滤注入消息
+  要同时认 `plugin` 与 `plugin:*`（本 PR 已在 `graded` 内处理；`router-core` 的同类问题见上游 issue #143）。
 - 升级提示：安装副本需 `node scripts/build.mjs` 刷新 `lib/` 后**重启宿主**
   （打包版不会热加载 node_modules 里的插件文件）。
 
