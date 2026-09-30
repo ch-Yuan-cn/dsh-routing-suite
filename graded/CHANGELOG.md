@@ -2,7 +2,7 @@
 
 ## 0.0.1-rc1 + v4 消息源契约修复（2026-09-30）
 - **会话格式 v4 兼容**：v4 的消息源准入拒绝字面量 `source.kind === 'plugin'`（v3 退休写法；
-  自 DSH 0.1.7 起，本次在 0.2.0-rc.2 上复现）。插件注入引导即抛
+  本次在 DSH 0.2.0-rc.2 上复现）。插件注入引导即抛
   `SessionFormatError: format v4 message requires a producer-owned source kind`，表现为「本轮运行失败」
   ——分级模式一注入就断（commit_star 激活后、mark_task 续轮后各复现一次）。
   四处注入点（`src/index.js` 的 `userMsg()`、`src/tools.js` 三处 steer）改用 v3→v4 迁移的兜底映射
